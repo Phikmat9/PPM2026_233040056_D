@@ -1,304 +1,659 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+class ProfileData {
+  String nama;
+  String bio;
+  String pendidikan;
+  String lokasi;
+  String kontak;
+  String skills;
+  Uint8List? fotoProfilBytes;
+
+  ProfileData({
+    required this.nama,
+    required this.bio,
+    required this.pendidikan,
+    required this.lokasi,
+    required this.kontak,
+    required this.skills,
+    this.fotoProfilBytes,
+  });
+}
+
+class ExperienceData {
+  String judul;
+  String deskripsi;
+  Uint8List? gambarBytes;
+
+  ExperienceData({
+    required this.judul,
+    required this.deskripsi,
+    this.gambarBytes,
+  });
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Aplikasi Profil',
+      title: 'Profil Saya',
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const ProfilePage(),
+      home: const HomePage(),
     );
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Data Profil Awal Sesuai Identitas Anda
+  ProfileData profile = ProfileData(
+    nama: 'Hikmat Pandu Raharja',
+    bio: 'Mahasiswa Teknik Informatika',
+    pendidikan: 'Teknik Informatika - Semester 6',
+    lokasi: 'Bandung, Jawa Barat',
+    kontak: 'hikmat.233040056@gmail.com\n+628995997485',
+    skills: 'Flutter, Dart, Java, PHP, Git',
+  );
+
+  ExperienceData experience = ExperienceData(
+    judul: 'Project Mobile',
+    deskripsi: 'Membuat aplikasi profil menggunakan Flutter.',
+  );
+
+  Future<void> bukaEditProfil() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfilePage(profile: profile),
+      ),
+    );
+
+    if (result != null && result is ProfileData) {
+      setState(() {
+        profile = result;
+      });
+    }
+  }
+
+  Future<void> bukaEditPengalaman() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditExperiencePage(experience: experience),
+      ),
+    );
+
+    if (result != null && result is ExperienceData) {
+      setState(() {
+        experience = result;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Tugas Mandiri 2: Warna latar soft
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: const Color(0xfff6f2ff),
       appBar: AppBar(
         title: const Text('Profil Saya'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
-        ],
+        backgroundColor: const Color(0xffeee9ff),
       ),
       drawer: Drawer(
         child: ListView(
-          padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            const ListTile(leading: Icon(Icons.home), title: Text('Beranda')),
-            const ListTile(leading: Icon(Icons.person), title: Text('Profil')),
-            // Tugas Mandiri 5: AlertDialog pada menu Pengaturan
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Pengaturan'),
-              onTap: () {
-                Navigator.pop(context); // Tutup drawer terlebih dahulu
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Pengaturan'),
-                    content: const Text('Menu pengaturan saat ini sedang dalam pengembangan.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Tutup'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.widgets),
-              title: const Text('Widget Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const GalleryHome()));
-              },
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  // Tugas Mandiri 1: Avatar menggunakan NetworkImage
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: NetworkImage('https://avatars.githubusercontent.com/u/9919?s=200&v=4'), // URL Contoh
-                    backgroundColor: Colors.transparent,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Hikmat Pandu Raharja',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Mahasiswa Teknik Informatika',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // === BARIS STATISTIK (Row + Expanded) ===
-            Row(
-              children: const [
-                Expanded(child: StatBox(label: 'Post', value: '12')),
-                Expanded(child: StatBox(label: 'Teman', value: '128')),
-                Expanded(child: StatBox(label: 'Like', value: '1.2K')),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // === SECTION CARD ===
-            const SectionCard(
-              icon: Icons.info_outline,
-              title: 'Tentang Saya',
-              content: 'Saya antusias belajar hal baru, terutama yang berkaitan dengan arsitektur perangkat lunak dan pengembangan aplikasi.',
-            ),
-            const SectionCard(
-              icon: Icons.school,
-              title: 'Pendidikan',
-              content: 'Universitas\nIlmu Komputer / Teknik Informatika',
-            ),
-            const SectionCard(
-              icon: Icons.favorite,
-              title: 'Hobi & Minat',
-              content: 'Kartu \nPoker \nDomino \nOlahraga \nGame',
-            ),
-            const SectionCard(
-              icon: Icons.email,
-              title: 'Kontak',
-              content: 'email@example.com\n+62 899-5997-485',
-            ),
-            // Tugas Mandiri 3: Section Card ke-5 berisi Skills dengan Wrap & Chips
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.star, color: Colors.blue, size: 28),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Skills', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: -4, // Mengurangi jarak vertikal antar chip
-                            children: const [
-                              Chip(label: Text('Java (MVC)')),
-                              Chip(label: Text('PHP / Laravel')),
-                              Chip(label: Text('Flutter')),
-                              Chip(label: Text('Cybersecurity (SCA)')),
-                              Chip(label: Text('Node.js')),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.deepPurple, Colors.purpleAccent],
                 ),
               ),
+              child: Text(
+                'Menu Utama',
+                style: TextStyle(color: Colors.white, fontSize: 22),
+              ),
             ),
-            const SizedBox(height: 80),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Edit Profil'),
+              onTap: () {
+                Navigator.pop(context);
+                bukaEditProfil();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.upload),
+              title: const Text('Upload Pengalaman'),
+              onTap: () {
+                Navigator.pop(context);
+                bukaEditPengalaman();
+              },
+            ),
           ],
         ),
       ),
-      // Tugas Mandiri 4: FAB menampilkan SnackBar
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Edit profil belum tersedia')),
-          );
-        },
-        child: const Icon(Icons.edit),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _headerProfile(),
+          const SizedBox(height: 16),
+          _infoCard(Icons.info, 'Tentang', profile.bio),
+          _infoCard(Icons.school, 'Pendidikan', profile.pendidikan),
+          _infoCard(Icons.location_on, 'Lokasi', profile.lokasi),
+          _infoCard(Icons.email, 'Kontak', profile.kontak),
+          _skillsCard(),
+          _experienceCard(),
+        ],
       ),
-      // Tugas Mandiri 6 (Bonus): NavigationBar varian Material 3
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 1,
-        onDestinationSelected: (int index) {},
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profil'),
-          NavigationDestination(icon: Icon(Icons.message_outlined), selectedIcon: Icon(Icons.message), label: 'Pesan'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Setting'),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.edit),
+        label: const Text('Edit Profil'),
+        onPressed: bukaEditProfil,
+      ),
+    );
+  }
+
+  Widget _headerProfile() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 45,
+              backgroundColor: Colors.grey.shade300,
+              backgroundImage: profile.fotoProfilBytes != null
+                  ? MemoryImage(profile.fotoProfilBytes!)
+                  : const NetworkImage(
+                'https://situ2.unpas.ac.id/uploads/unpas/fotomhs/thumb/233040056.jpg',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              profile.nama,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(profile.bio),
+            const SizedBox(height: 20),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text('12\nPost', textAlign: TextAlign.center),
+                Text('128\nTeman', textAlign: TextAlign.center),
+                Text('1.2K\nLike', textAlign: TextAlign.center),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoCard(IconData icon, String title, String value) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: Colors.deepPurple),
+        title: Text(title),
+        subtitle: Text(value),
+      ),
+    );
+  }
+
+  Widget _skillsCard() {
+    final skillList = profile.skills.split(',');
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.star, color: Colors.deepPurple),
+                SizedBox(width: 8),
+                Text('Skills'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: skillList
+                  .map(
+                    (skill) => Chip(
+                  label: Text(skill.trim()),
+                  side: const BorderSide(color: Colors.deepPurple),
+                ),
+              )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _experienceCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.work, color: Colors.deepPurple),
+                SizedBox(width: 8),
+                Text('Pengalaman'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Container(
+                  width: 85,
+                  height: 85,
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    image: experience.gambarBytes != null
+                        ? DecorationImage(
+                      image: MemoryImage(experience.gambarBytes!),
+                      fit: BoxFit.cover,
+                    )
+                        : null,
+                  ),
+                  child: experience.gambarBytes == null
+                      ? const Icon(Icons.image, color: Colors.deepPurple)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        experience.judul,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(experience.deskripsi),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EditProfilePage extends StatefulWidget {
+  final ProfileData profile;
+
+  const EditProfilePage({super.key, required this.profile});
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  final ImagePicker picker = ImagePicker();
+
+  late TextEditingController namaController;
+  late TextEditingController bioController;
+  late TextEditingController pendidikanController;
+  late TextEditingController lokasiController;
+  late TextEditingController kontakController;
+  late TextEditingController skillsController;
+
+  Uint8List? fotoBaruBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    namaController = TextEditingController(text: widget.profile.nama);
+    bioController = TextEditingController(text: widget.profile.bio);
+    pendidikanController =
+        TextEditingController(text: widget.profile.pendidikan);
+    lokasiController = TextEditingController(text: widget.profile.lokasi);
+    kontakController = TextEditingController(text: widget.profile.kontak);
+    skillsController = TextEditingController(text: widget.profile.skills);
+    fotoBaruBytes = widget.profile.fotoProfilBytes;
+  }
+
+  Future<void> pilihFoto() async {
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      final Uint8List bytes = await pickedFile.readAsBytes();
+
+      setState(() {
+        fotoBaruBytes = bytes;
+      });
+    }
+  }
+
+  void simpanProfil() {
+    final dataBaru = ProfileData(
+      nama: namaController.text,
+      bio: bioController.text,
+      pendidikan: pendidikanController.text,
+      lokasi: lokasiController.text,
+      kontak: kontakController.text,
+      skills: skillsController.text,
+      fotoProfilBytes: fotoBaruBytes,
+    );
+
+    Navigator.pop(context, dataBaru);
+  }
+
+  @override
+  void dispose() {
+    namaController.dispose();
+    bioController.dispose();
+    pendidikanController.dispose();
+    lokasiController.dispose();
+    kontakController.dispose();
+    skillsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xfff6f2ff),
+      appBar: AppBar(
+        title: const Text('Edit Profil'),
+        backgroundColor: const Color(0xffeee9ff),
+        actions: [
+          TextButton.icon(
+            onPressed: simpanProfil,
+            icon: const Icon(Icons.check),
+            label: const Text('Simpan'),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Center(
+            child: Text(
+              'Foto Profil',
+              style: TextStyle(color: Colors.deepPurple),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.grey.shade300,
+                  backgroundImage: fotoBaruBytes != null
+                      ? MemoryImage(fotoBaruBytes!)
+                      : const NetworkImage(
+                    'https://situ2.unpas.ac.id/uploads/unpas/fotomhs/thumb/233040056.jpg',
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: InkWell(
+                    onTap: pilihFoto,
+                    child: const CircleAvatar(
+                      backgroundColor: Colors.deepPurple,
+                      child: Icon(Icons.camera_alt, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: pilihFoto,
+            icon: const Icon(Icons.image),
+            label: const Text('Ganti Foto dari Galeri'),
+          ),
+          const Divider(height: 30),
+          const Text(
+            'Informasi Profil',
+            style: TextStyle(
+              color: Colors.deepPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _input(namaController, 'Nama Lengkap', Icons.person),
+          _input(bioController, 'Bio / Tentang', Icons.info, maxLines: 3),
+          _input(pendidikanController, 'Pendidikan', Icons.school),
+          _input(lokasiController, 'Lokasi', Icons.location_on),
+          _input(kontakController, 'Kontak', Icons.email, maxLines: 2),
+          _input(skillsController, 'Skills', Icons.star),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: simpanProfil,
+            icon: const Icon(Icons.save),
+            label: const Text('Simpan Perubahan'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-// --- HELPER WIDGETS ---
-class StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-  const StatBox({super.key, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: Colors.grey.shade600)),
-      ],
-    );
-  }
-}
-
-class SectionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String content;
-  const SectionCard({super.key, required this.icon, required this.title, required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: Colors.blue, size: 28),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  Text(content, style: const TextStyle(height: 1.4)),
-                ],
-              ),
-            ),
-          ],
+  Widget _input(
+      TextEditingController controller,
+      String label,
+      IconData icon, {
+        int maxLines = 1,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );
   }
 }
 
-// --- WIDGET GALLERY ---
-class GalleryHome extends StatelessWidget {
-  const GalleryHome({super.key});
+class EditExperiencePage extends StatefulWidget {
+  final ExperienceData experience;
+
+  const EditExperiencePage({super.key, required this.experience});
 
   @override
-  Widget build(BuildContext context) {
-    final categories = [
-      ('Display', Icons.image, Colors.blue),
-      ('Input', Icons.edit, Colors.green),
-      ('Button', Icons.smart_button, Colors.orange),
-      ('Feedback', Icons.notifications, Colors.purple),
-      ('Layout', Icons.dashboard, Colors.teal),
-    ];
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Widget Gallery')),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (context, i) {
-          final cat = categories[i];
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: cat.$3, child: Icon(cat.$2, color: Colors.white)),
-              title: Text(cat.$1),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryPage(name: cat.$1)));
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
+  State<EditExperiencePage> createState() => _EditExperiencePageState();
 }
 
-class CategoryPage extends StatelessWidget {
-  final String name;
-  const CategoryPage({super.key, required this.name});
+class _EditExperiencePageState extends State<EditExperiencePage> {
+  final ImagePicker picker = ImagePicker();
+
+  late TextEditingController judulController;
+  late TextEditingController deskripsiController;
+
+  Uint8List? gambarBaruBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    judulController = TextEditingController(text: widget.experience.judul);
+    deskripsiController =
+        TextEditingController(text: widget.experience.deskripsi);
+    gambarBaruBytes = widget.experience.gambarBytes;
+  }
+
+  Future<void> pilihGambar() async {
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      final Uint8List bytes = await pickedFile.readAsBytes();
+
+      setState(() {
+        gambarBaruBytes = bytes;
+      });
+    }
+  }
+
+  void simpanPengalaman() {
+    final dataBaru = ExperienceData(
+      judul: judulController.text,
+      deskripsi: deskripsiController.text,
+      gambarBytes: gambarBaruBytes,
+    );
+
+    Navigator.pop(context, dataBaru);
+  }
+
+  @override
+  void dispose() {
+    judulController.dispose();
+    deskripsiController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(name)),
-      body: Center(child: Text('Konten kategori $name ada di modul (silakan tambahkan class demonya jika diperlukan).')),
+      backgroundColor: const Color(0xfff6f2ff),
+      appBar: AppBar(
+        title: const Text('Upload Pengalaman'),
+        backgroundColor: const Color(0xffeee9ff),
+        actions: [
+          TextButton.icon(
+            onPressed: simpanPengalaman,
+            icon: const Icon(Icons.save),
+            label: const Text('Simpan'),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          GestureDetector(
+            onTap: pilihGambar,
+            child: Container(
+              height: 180,
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.deepPurple.shade100),
+                image: gambarBaruBytes != null
+                    ? DecorationImage(
+                  image: MemoryImage(gambarBaruBytes!),
+                  fit: BoxFit.cover,
+                )
+                    : null,
+              ),
+              child: gambarBaruBytes == null
+                  ? const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_photo_alternate,
+                    size: 45,
+                    color: Colors.deepPurple,
+                  ),
+                  SizedBox(height: 8),
+                  Text('Ketuk untuk pilih gambar'),
+                  Text(
+                    'Pilih galeri pengalaman kamu',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Informasi Pengalaman',
+            style: TextStyle(
+              color: Colors.deepPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: judulController,
+            decoration: InputDecoration(
+              labelText: 'Judul',
+              prefixIcon: const Icon(Icons.title),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: deskripsiController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              labelText: 'Deskripsi',
+              prefixIcon: const Icon(Icons.description),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: simpanPengalaman,
+            icon: const Icon(Icons.save),
+            label: const Text('Simpan Pengalaman'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
